@@ -1,4 +1,4 @@
-const ArchiveLayout = (archive, latest) => {
+const ArchiveLayout = ({ archive, latest }) => {
   return (
     <div>
       <h1>News Archive</h1>
