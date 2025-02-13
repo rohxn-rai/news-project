@@ -32,7 +32,7 @@ const FilteredNewsPage = ({ params }) => {
     (selectedMonth &&
       !getAvailableNewsMonths(selectedYear).includes(+selectedMonth))
   ) {
-    throw new error("Invalid Filter!");
+    throw new Error("Invalid Filter!");
   }
 
   let newsContent = <p>No news found for the selected period.</p>;
