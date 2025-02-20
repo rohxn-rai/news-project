@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import NewsList from "@/components/news-list";
@@ -6,25 +7,16 @@ import {
   getAvailableNewsMonths,
   getAvailableNewsYears,
   getNewsForYear,
+  getNewsForYearAndMonth,
 } from "@/lib/news";
 
-const FilteredNewsPage = async ({ params }) => {
-  const filter = params.filter;
-
-  const selectedYear = filter?.[0];
-  const selectedMonth = filter?.[1];
-
+const FilteredNews = async ({ year, month }) => {
   let news;
-  let links = await getAvailableNewsYears();
 
-  if (selectedYear && !selectedMonth) {
-    news = await getNewsForYear(selectedYear);
-    links = getAvailableNewsMonths(selectedYear);
-  }
-
-  if (selectedYear && selectedMonth) {
-    news = await getNewsForYear(selectedYear, selectedMonth);
-    links = [];
+  if (year && !month) {
+    news = await getNewsForYear(year);
+  } else if (year && month) {
+    news = await getNewsForYearAndMonth(year, month);
   }
 
   let newsContent = <p>No news found for the selected period.</p>;
@@ -33,12 +25,31 @@ const FilteredNewsPage = async ({ params }) => {
     newsContent = <NewsList news={news} />;
   }
 
+  return newsContent;
+};
+
+const FilteredNewsPage = async ({ params }) => {
+  const filter = params.filter;
+
+  const selectedYear = filter?.[0];
+  const selectedMonth = filter?.[1];
+
   const availableYears = await getAvailableNewsYears();
 
+  let links = availableYears;
+
+  if (selectedYear && !selectedMonth) {
+    links = getAvailableNewsMonths(selectedYear);
+  }
+
+  if (selectedYear && selectedMonth) {
+    links = [];
+  }
+
   if (
-    (selectedYear && !availableYears.includes(+selectedYear)) ||
+    (selectedYear && !availableYears.includes(selectedYear)) ||
     (selectedMonth &&
-      !getAvailableNewsMonths(selectedYear).includes(+selectedMonth))
+      !getAvailableNewsMonths(selectedYear).includes(selectedMonth))
   ) {
     throw new Error("Invalid Filter!");
   }
@@ -62,7 +73,9 @@ const FilteredNewsPage = async ({ params }) => {
           </ul>
         </nav>
       </header>
-      {newsContent}
+      <Suspense>
+        <FilteredNews year={selectedYear} month={selectedMonth} />
+      </Suspense>
     </>
   );
 };
